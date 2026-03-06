@@ -34,7 +34,7 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API}/api/calendar/events`);
+      const res = await fetch(`${API}/calendar/events`);
       if (!res.ok) throw new Error('Error al obtener eventos');
       const data = await res.json();
       setEvents(data || []);
@@ -56,8 +56,8 @@ export default function Home() {
     setError(null);
     try {
       const url = editingId
-        ? `${API}/api/calendar/events/update?eventId=${editingId}`
-        : `${API}/api/calendar/events/create`;
+        ? `${API}/calendar/events/${editingId}`
+        : `${API}/calendar/events`;
       const method = editingId ? 'PATCH' : 'POST';
       const res = await fetch(url, {
         method,
@@ -79,7 +79,7 @@ export default function Home() {
   const handleDelete = async (id: string) => {
     setError(null);
     try {
-      const res = await fetch(`${API}/api/calendar/events/delete?eventId=${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API}/calendar/events/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Error al eliminar');
       fetchEvents();
     } catch (err) {

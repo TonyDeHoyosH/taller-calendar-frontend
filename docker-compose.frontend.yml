@@ -1,0 +1,11 @@
+services:
+  frontend:
+    build:
+      context: ../taller-calendar-front
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NEXT_PUBLIC_API_URL=https://taller-calendar-backend.onrender.com
+    env_file:
+      - ../taller-calendar-front/.env.local

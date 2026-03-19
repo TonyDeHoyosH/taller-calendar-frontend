@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { citasApi } from '@/lib/api/citas';
 
 const agendarSchema = z.object({
   tipo_servicio_id: z.string().min(1, 'Selecciona un servicio'),
@@ -33,8 +34,21 @@ export default function AgendarForm() {
   });
 
   const onSubmit = async (data: AgendarFormValues) => {
-    // API integration will be added in next commit
-    console.log("Form data:", data);
+    setError('');
+    try {
+      if (!user) return;
+      
+      const payload = {
+        ...data,
+        cliente_id: user.id,
+        tipo_servicio_id: parseInt(data.tipo_servicio_id, 10)
+      };
+      
+      await citasApi.createCita(payload);
+      router.push('/cliente');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al agendar la cita. Inténtalo nuevamente.');
+    }
   };
 
   return (

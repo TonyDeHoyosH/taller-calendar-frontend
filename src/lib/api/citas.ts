@@ -11,4 +11,9 @@ export const citasApi = {
     const { data } = await api.post('/citas', citaData);
     return data;
   },
+
+  updateEstadoCita: async (id: number, accion: 'aceptar' | 'rechazar'): Promise<Cita> => {
+    const { data } = await api.patch(`/citas/${id}/${accion}`);
+    return data;
+  },
 };

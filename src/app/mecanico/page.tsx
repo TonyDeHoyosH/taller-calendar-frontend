@@ -4,8 +4,23 @@ import { useAuth } from '@/hooks/useAuth';
 import { Wrench, Clock, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 
+import SolicitudesList from '@/components/mecanico/SolicitudesList';
+import { useQuery } from '@tanstack/react-query';
+import { citasApi } from '@/lib/api/citas';
+
 export default function MecanicoDashboard() {
   const { user } = useAuth();
+  const { data: citas = [] } = useQuery({
+    queryKey: ['citas-todas'],
+    queryFn: citasApi.getCitas,
+  });
+
+  const stats = {
+    pendientes: citas.filter(c => c.estado === 'pendiente').length,
+    aceptadas: citas.filter(c => c.estado === 'aceptada').length,
+    rechazadas: citas.filter(c => c.estado === 'rechazada' || c.estado === 'cancelada').length,
+    total: citas.length
+  };
 
   return (
     <div className="space-y-8">
@@ -31,28 +46,15 @@ export default function MecanicoDashboard() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Solicitudes Pendientes" value="--" icon={<Clock className="w-6 h-6 text-yellow-600" />} color="bg-yellow-50" />
-        <StatCard title="Citas Aceptadas" value="--" icon={<CheckCircle className="w-6 h-6 text-green-600" />} color="bg-green-50" />
-        <StatCard title="Citas Rechazadas" value="--" icon={<XCircle className="w-6 h-6 text-red-600" />} color="bg-red-50" />
-        <StatCard title="Total Servicios" value="--" icon={<Wrench className="w-6 h-6 text-blue-600" />} color="bg-blue-50" />
+        <StatCard title="Solicitudes Pendientes" value={stats.pendientes.toString()} icon={<Clock className="w-6 h-6 text-yellow-600" />} color="bg-yellow-50" />
+        <StatCard title="Citas Aceptadas" value={stats.aceptadas.toString()} icon={<CheckCircle className="w-6 h-6 text-green-600" />} color="bg-green-50" />
+        <StatCard title="Citas Rechazadas" value={stats.rechazadas.toString()} icon={<XCircle className="w-6 h-6 text-red-600" />} color="bg-red-50" />
+        <StatCard title="Total Servicios" value={stats.total.toString()} icon={<Wrench className="w-6 h-6 text-blue-600" />} color="bg-blue-50" />
       </div>
 
       <div className="mt-8">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Solicitudes Recientes</h2>
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center text-gray-500">
-          <div className="animate-pulse flex space-x-4">
-            <div className="flex-1 space-y-6 py-1">
-              <div className="h-2 bg-slate-200 rounded"></div>
-              <div className="space-y-3">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="h-2 bg-slate-200 rounded col-span-2"></div>
-                  <div className="h-2 bg-slate-200 rounded col-span-1"></div>
-                </div>
-                <div className="h-2 bg-slate-200 rounded"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <SolicitudesList />
       </div>
     </div>
   );

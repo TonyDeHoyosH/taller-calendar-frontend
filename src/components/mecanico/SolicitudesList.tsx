@@ -56,7 +56,14 @@ export default function SolicitudesList() {
             <div className="flex flex-wrap gap-4 text-sm text-gray-600">
               <div className="flex items-center gap-1.5">
                 <Calendar className="w-4 h-4 text-blue-500" />
-                <span className="font-medium capitalize">{format(new Date(cita.fecha_preferida || cita.fecha_inicio), "EEEE d 'de' MMMM", { locale: es })}</span>
+                <span className="font-medium capitalize">
+                  {(() => {
+                    const d = new Date(cita.fecha_preferida || cita.fecha_inicio);
+                    return isNaN(d.getTime()) 
+                      ? 'Fecha pendiente' 
+                      : format(d, "EEEE d 'de' MMMM", { locale: es });
+                  })()}
+                </span>
               </div>
             </div>
             

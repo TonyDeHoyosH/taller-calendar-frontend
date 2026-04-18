@@ -37,6 +37,7 @@ export default function CitaDetalleModal({ citaId, onClose }: CitaDetalleModalPr
   };
 
   const handleUpdateDate = async (nuevaFecha: string) => {
+    if (!nuevaFecha) return;
     setIsUpdating(true);
     try {
       await citasApi.updateCita(cita.id, { fecha_preferida: new Date(nuevaFecha).toISOString() });
@@ -46,6 +47,16 @@ export default function CitaDetalleModal({ citaId, onClose }: CitaDetalleModalPr
       setError('Error al actualizar la fecha.');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const safeFormat = (dateStr: any) => {
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return 'Fecha no válida';
+      return format(d, 'yyyy-MM-dd');
+    } catch {
+      return 'Fecha no válida';
     }
   };
 
@@ -100,7 +111,7 @@ export default function CitaDetalleModal({ citaId, onClose }: CitaDetalleModalPr
              <div className="flex flex-wrap gap-3 items-center">
                 <input 
                   type="date" 
-                  defaultValue={format(new Date(cita.fecha_preferida), 'yyyy-MM-dd')}
+                  defaultValue={safeFormat(cita.fecha_preferida || cita.fecha_inicio)}
                   onChange={(e) => handleUpdateDate(e.target.value)}
                   className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                 />

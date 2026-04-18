@@ -17,7 +17,12 @@ export default function CalendarView() {
     queryFn: citasApi.getCitas,
   });
 
-  const citas = Array.isArray(rawData) ? rawData : (rawData as any)?.citas || [];
+  // Log para depuración rápida en consola F12
+  if (rawData) console.log('Datos recibidos del backend:', rawData);
+
+  const citas = Array.isArray(rawData) 
+    ? rawData 
+    : (rawData as any)?.citas || (rawData as any)?.data || [];
 
   const getEventColor = (estado: string) => {
     switch (estado) {

@@ -9,10 +9,14 @@ import { Check, X, Calendar, Wrench } from 'lucide-react';
 export default function SolicitudesList() {
   const queryClient = useQueryClient();
 
-  const { data: citas = [], isLoading } = useQuery({
+  const { data: rawData, isLoading } = useQuery({
     queryKey: ['citas-todas'],
     queryFn: citasApi.getCitas,
   });
+
+  const citas = Array.isArray(rawData) 
+    ? rawData 
+    : (rawData as any)?.citas || (rawData as any)?.data || [];
 
   const updateMutation = useMutation({
     mutationFn: ({ id, action }: { id: number; action: 'aceptar' | 'rechazar' }) => 

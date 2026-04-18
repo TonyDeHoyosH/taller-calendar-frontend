@@ -18,10 +18,14 @@ const agendarSchema = z.object({
 type AgendarFormValues = z.infer<typeof agendarSchema>;
 
 const serviciosMock = [
-  { id: 1, nombre: 'Mantenimiento General' },
-  { id: 2, nombre: 'Cambio de Aceite' },
-  { id: 3, nombre: 'Revisión de Frenos' },
-  { id: 4, nombre: 'Diagnóstico por Computadora' }
+  { id: 1, nombre: 'Cambio de Aceite' },
+  { id: 2, nombre: 'Afinación Mayor' },
+  { id: 3, nombre: 'Frenos (Pastillas y Discos)' },
+  { id: 4, nombre: 'Suspensión' },
+  { id: 5, nombre: 'Diagnóstico General' },
+  { id: 6, nombre: 'Transmisión' },
+  { id: 7, nombre: 'Sistema Eléctrico' },
+  { id: 8, nombre: 'Hojalatería y Pintura' }
 ];
 
 export default function AgendarForm() {

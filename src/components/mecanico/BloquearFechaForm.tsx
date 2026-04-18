@@ -33,6 +33,7 @@ export default function BloquearFechaForm() {
       setSuccess('Fechas bloqueadas exitosamente. No se podrán agendar citas en este periodo.');
       reset();
       queryClient.invalidateQueries({ queryKey: ['citas-todas'] });
+      queryClient.invalidateQueries({ queryKey: ['bloqueos'] });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al bloquear las fechas.');
     }

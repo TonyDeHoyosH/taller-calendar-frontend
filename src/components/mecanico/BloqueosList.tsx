@@ -11,10 +11,12 @@ export default function BloqueosList() {
   const queryClient = useQueryClient();
   const [error, setError] = useState('');
 
-  const { data: bloqueos = [], isLoading } = useQuery({
+  const { data: rawData, isLoading } = useQuery({
     queryKey: ['bloqueos'],
     queryFn: bloqueosApi.getBloqueos,
   });
+
+  const bloqueos = Array.isArray(rawData) ? rawData : (rawData as any)?.bloqueos || [];
 
   const handleDelete = async (id: number) => {
     try {

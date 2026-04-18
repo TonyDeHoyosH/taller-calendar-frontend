@@ -49,20 +49,20 @@ export default function SolicitudesList() {
               <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold uppercase tracking-wider">
                 Nueva
               </span>
-              <h3 className="font-bold text-gray-900 text-lg">{cita.modelo_auto}</h3>
+              <h3 className="font-bold text-gray-900 text-lg">{cita.vehiculo_modelo || cita.modelo_auto || 'Vehículo'}</h3>
               <span className="text-gray-400 text-sm">#{cita.id}</span>
             </div>
             
             <div className="flex flex-wrap gap-4 text-sm text-gray-600">
               <div className="flex items-center gap-1.5">
                 <Calendar className="w-4 h-4 text-blue-500" />
-                <span className="font-medium capitalize">{format(new Date(cita.fecha_inicio), "EEEE d 'de' MMMM", { locale: es })}</span>
+                <span className="font-medium capitalize">{format(new Date(cita.fecha_preferida || cita.fecha_inicio), "EEEE d 'de' MMMM", { locale: es })}</span>
               </div>
             </div>
             
             <div className="flex items-start gap-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-xl border border-gray-100">
               <Wrench className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-              <p>{cita.descripcion_problema}</p>
+              <p>{cita.descripcion || cita.descripcion_problema}</p>
             </div>
           </div>
           

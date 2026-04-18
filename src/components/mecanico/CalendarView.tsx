@@ -12,10 +12,12 @@ import CitaDetalleModal from './CitaDetalleModal';
 export default function CalendarView() {
   const [selectedCitaId, setSelectedCitaId] = useState<string | null>(null);
   
-  const { data: citas = [], isLoading } = useQuery({
+  const { data: rawData, isLoading } = useQuery({
     queryKey: ['citas-todas'],
     queryFn: citasApi.getCitas,
   });
+
+  const citas = Array.isArray(rawData) ? rawData : (rawData as any)?.citas || [];
 
   const getEventColor = (estado: string) => {
     switch (estado) {
@@ -30,12 +32,12 @@ export default function CalendarView() {
 
   const events = citas.map(cita => ({
     id: cita.id.toString(),
-    title: `${cita.vehiculo_modelo} - ${cita.usuario?.nombre || 'S/N'}`,
-    date: cita.fecha_preferida,
+    title: `${cita.vehiculo_modelo || cita.modelo_auto || 'Servicio'} - ${cita.usuario?.nombre || 'S/N'}`,
+    date: cita.fecha_preferida || cita.fecha_inicio,
     backgroundColor: getEventColor(cita.estado),
     borderColor: 'transparent',
     extendedProps: {
-      descripcion: cita.descripcion,
+      descripcion: cita.descripcion || cita.descripcion_problema,
       estado: cita.estado
     }
   }));

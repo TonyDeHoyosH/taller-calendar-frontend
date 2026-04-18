@@ -32,12 +32,12 @@ export default function CalendarView() {
 
   const events = citas.map(cita => ({
     id: cita.id.toString(),
-    title: `${cita.vehiculo_modelo || cita.modelo_auto || 'Servicio'} - ${cita.usuario?.nombre || 'S/N'}`,
+    title: `${cita.vehiculo_modelo || cita.modelo_auto || 'Vehículo'}`,
     date: cita.fecha_preferida || cita.fecha_inicio,
     backgroundColor: getEventColor(cita.estado),
-    borderColor: 'transparent',
+    borderColor: getEventColor(cita.estado),
     extendedProps: {
-      descripcion: cita.descripcion || cita.descripcion_problema,
+      cliente: cita.usuario?.nombre || 'S/N',
       estado: cita.estado
     }
   }));
@@ -52,11 +52,20 @@ export default function CalendarView() {
         .fc-theme-standard td, .fc-theme-standard th { border-color: #f3f4f6; }
         .fc-theme-standard .fc-scrollgrid { border-color: #f3f4f6; border-radius: 12px; overflow: hidden; }
         .fc-day-today { background-color: #f8fafc !important; }
-        .fc-event { border-radius: 8px; padding: 4px 8px; border: none; font-weight: 600; cursor: pointer; margin: 2px 0; font-size: 0.75rem; }
+        .fc-event { 
+          border-radius: 8px !important; 
+          padding: 4px 8px !important; 
+          border: none !important; 
+          font-weight: 700 !important; 
+          cursor: pointer !important; 
+          margin: 2px 0 !important; 
+          font-size: 0.7rem !important;
+          color: white !important;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
         .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700 !important; color: #111827; text-transform: capitalize; }
         .fc-button-primary { background-color: #111827 !important; border-color: #111827 !important; text-transform: capitalize; border-radius: 10px !important; font-weight: 500; }
-        .fc-button-primary:hover { background-color: #374151 !important; border-color: #374151 !important; }
-        .fc-event:hover { filter: brightness(0.9); transition: all 0.2s; }
+        .fc-event:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.2s; }
       `}</style>
 
       <FullCalendar
@@ -72,8 +81,10 @@ export default function CalendarView() {
         }}
         eventClick={(info) => setSelectedCitaId(info.event.id)}
         eventContent={(eventInfo) => (
-          <div className="truncate flex items-center gap-1.5 overflow-hidden">
-             <div className="w-1.5 h-1.5 rounded-full bg-white/40"></div>
+          <div className="flex flex-col gap-0.5 leading-tight">
+             <span className="opacity-80 text-[9px] uppercase tracking-tighter font-black">
+               {eventInfo.event.extendedProps.estado}
+             </span>
              <span className="truncate">{eventInfo.event.title}</span>
           </div>
         )}

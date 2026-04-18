@@ -38,7 +38,8 @@ export default function CalendarView() {
   const events = citas.map(cita => ({
     id: cita.id.toString(),
     title: `${cita.vehiculo_modelo || cita.modelo_auto || 'Vehículo'}`,
-    date: cita.fecha_preferida || cita.fecha_inicio,
+    start: cita.fecha_preferida || cita.fecha_inicio,
+    end: cita.fecha_fin || undefined,
     backgroundColor: getEventColor(cita.estado),
     borderColor: getEventColor(cita.estado),
     extendedProps: {

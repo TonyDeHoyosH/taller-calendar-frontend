@@ -1,4 +1,5 @@
 import BloquearFechaForm from '@/components/mecanico/BloquearFechaForm';
+import BloqueosList from '@/components/mecanico/BloqueosList';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -13,8 +14,9 @@ export default function ConfiguracionPage() {
         <p className="text-gray-500">Administra la disponibilidad de tu taller.</p>
       </div>
 
-      <div className="max-w-3xl">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         <BloquearFechaForm />
+        <BloqueosList />
       </div>
     </div>
   );

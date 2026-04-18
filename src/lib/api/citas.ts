@@ -7,8 +7,18 @@ export const citasApi = {
     return data;
   },
 
-  createCita: async (citaData: CreateCitaDTO): Promise<Cita> => {
+  createCita: async (citaData: any): Promise<Cita> => {
     const { data } = await api.post('/citas', citaData);
+    return data;
+  },
+
+  getCitaById: async (id: string | number): Promise<Cita> => {
+    const { data } = await api.get(`/citas/${id}`);
+    return data;
+  },
+
+  updateCita: async (id: string | number, updateData: any): Promise<Cita> => {
+    const { data } = await api.patch(`/citas/${id}`, updateData);
     return data;
   },
 
@@ -16,4 +26,16 @@ export const citasApi = {
     const { data } = await api.patch(`/citas/${id}/${accion}`);
     return data;
   },
+};
+
+export const bloqueosApi = {
+  getBloqueos: async () => {
+    const { data } = await api.get('/configuracion/bloqueos');
+    return data;
+  },
+  
+  deleteBloqueo: async (id: string | number) => {
+    const { data } = await api.delete(`/configuracion/bloqueos/${id}`);
+    return data;
+  }
 };

@@ -30,7 +30,10 @@ export default function CitaDetalleModal({ citaId, onClose }: CitaDetalleModalPr
       queryClient.invalidateQueries({ queryKey: ['citas-todas'] });
       onClose();
     } catch (err: any) {
-      setError('Error al actualizar el estado.');
+      const msg = Array.isArray(err.response?.data?.message) 
+        ? err.response.data.message.join(', ') 
+        : err.response?.data?.message;
+      setError(msg || 'Error al actualizar el estado.');
     } finally {
       setIsUpdating(false);
     }
@@ -40,11 +43,17 @@ export default function CitaDetalleModal({ citaId, onClose }: CitaDetalleModalPr
     if (!nuevaFecha) return;
     setIsUpdating(true);
     try {
-      await citasApi.updateCita(cita.id, { fecha_preferida: new Date(nuevaFecha).toISOString() });
+      await citasApi.updateCita(cita.id, { 
+        fecha_preferida: new Date(nuevaFecha).toISOString(),
+        fecha_inicio: new Date(nuevaFecha).toISOString() // Mandamos ambos por si acaso
+      });
       queryClient.invalidateQueries({ queryKey: ['citas-todas'] });
       onClose();
-    } catch (err) {
-      setError('Error al actualizar la fecha.');
+    } catch (err: any) {
+      const msg = Array.isArray(err.response?.data?.message) 
+        ? err.response.data.message.join(', ') 
+        : err.response?.data?.message;
+      setError(msg || 'Error al actualizar la fecha.');
     } finally {
       setIsUpdating(false);
     }
@@ -94,14 +103,14 @@ export default function CitaDetalleModal({ citaId, onClose }: CitaDetalleModalPr
             </div>
             <div className="space-y-1">
               <label className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest"><Car className="w-3 h-3" /> Vehículo</label>
-              <p className="text-gray-900 font-semibold">{cita.vehiculo_modelo}</p>
+              <p className="text-gray-900 font-semibold">{cita.vehiculo_modelo || cita.modelo_auto || 'No especificado'}</p>
             </div>
           </div>
 
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest"><ClipboardList className="w-3 h-3" /> Descripción del Problema</label>
             <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-gray-700 text-sm leading-relaxed">
-              {cita.descripcion}
+              {cita.descripcion || cita.descripcion_problema || 'Sin descripción'}
             </div>
           </div>
 

@@ -48,12 +48,20 @@ export default function CalendarView() {
     }
   }));
 
+  console.log('Eventos mapeados:', events);
+
   if (isLoading) {
     return <div className="animate-pulse bg-gray-100 rounded-3xl h-[600px] w-full"></div>;
   }
 
+  const initialDate = events.length > 0 ? events[0].start : undefined;
+
   return (
     <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 relative">
+      {/* Indicador de depuración */}
+      <div className="absolute top-2 right-2 px-2 py-1 bg-gray-800 text-white text-[10px] rounded z-10 opacity-50">
+        Citas: {citas.length} | Eventos: {events.length}
+      </div>
       <style>{`
         .fc-theme-standard td, .fc-theme-standard th { border-color: #f3f4f6; }
         .fc-theme-standard .fc-scrollgrid { border-color: #f3f4f6; border-radius: 12px; overflow: hidden; }
@@ -77,6 +85,7 @@ export default function CalendarView() {
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
+        initialDate={initialDate}
         locale={esLocale}
         events={events}
         height="auto"

@@ -39,15 +39,21 @@ export default function AgendarForm() {
       if (!user) return;
       
       const payload = {
-        ...data,
-        cliente_id: user.id,
-        tipo_servicio_id: parseInt(data.tipo_servicio_id, 10)
+        servicio: parseInt(data.tipo_servicio_id, 10),
+        vehiculo_modelo: data.modelo_auto,
+        descripcion: data.descripcion_problema,
+        fecha_preferida: new Date(data.fecha_inicio).toISOString(),
       };
       
-      await citasApi.createCita(payload);
+      await citasApi.createCita(payload as any);
       router.push('/cliente');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al agendar la cita. Inténtalo nuevamente.');
+      // Si el error viene del backend, mostrar el mensaje detallado
+      const backendMessage = Array.isArray(err.response?.data?.message) 
+        ? err.response.data.message.join(', ') 
+        : err.response?.data?.message;
+        
+      setError(backendMessage || 'Error al agendar la cita. Inténtalo nuevamente.');
     }
   };
 

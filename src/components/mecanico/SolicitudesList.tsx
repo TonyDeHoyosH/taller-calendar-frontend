@@ -101,6 +101,7 @@ export default function SolicitudesList() {
                   <button
                     onClick={() => {
                       if (updateMutation.isPending) return;
+                      console.log('Intentando aceptar cita completa:', cita);
                       updateMutation.mutate({ id: cita.id, action: 'aceptar' });
                     }}
                     disabled={updateMutation.isPending}

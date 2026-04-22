@@ -8,9 +8,9 @@ export const citasApi = {
     return data;
   },
 
-  // Para Mecánicos: Ver todo el taller
+  // Para Mecánicos: Ver todo el taller (Probamos /citas si /todos da 404)
   getCitasTodas: async (): Promise<Cita[]> => {
-    const { data } = await api.get('/citas/todos');
+    const { data } = await api.get('/citas');
     return data;
   },
 

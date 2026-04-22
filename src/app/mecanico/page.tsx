@@ -1,9 +1,8 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { Wrench, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, XCircle, Settings } from 'lucide-react';
 import Link from 'next/link';
-
 import SolicitudesList from '@/components/mecanico/SolicitudesList';
 import { useQuery } from '@tanstack/react-query';
 import { citasApi } from '@/lib/api/citas';
@@ -23,52 +22,64 @@ export default function MecanicoDashboard() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">Panel del Taller</h1>
-          <p className="text-gray-500">Bienvenido {user?.nombre}, aquí puedes gestionar las solicitudes entrantes.</p>
+          <h1 className="text-3xl font-bold text-gray-900">Panel de Control</h1>
+          <p className="text-gray-500">Bienvenido, {user?.nombre}</p>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex gap-3">
           <Link 
             href="/mecanico/calendario"
-            className="inline-flex items-center justify-center bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm text-sm"
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
           >
+            <Calendar className="w-4 h-4" />
             Ver Calendario
           </Link>
           <Link 
             href="/mecanico/configuracion"
-            className="inline-flex items-center justify-center bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm text-sm"
+            className="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
           >
+            <Settings className="w-4 h-4" />
             Configuración
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Solicitudes Pendientes" value={stats.pendientes.toString()} icon={<Clock className="w-6 h-6 text-yellow-600" />} color="bg-yellow-50" />
-        <StatCard title="Citas Aceptadas" value={stats.aceptadas.toString()} icon={<CheckCircle className="w-6 h-6 text-green-600" />} color="bg-green-50" />
-        <StatCard title="Citas Rechazadas" value={stats.rechazadas.toString()} icon={<XCircle className="w-6 h-6 text-red-600" />} color="bg-red-50" />
-        <StatCard title="Total Servicios" value={stats.total.toString()} icon={<Wrench className="w-6 h-6 text-blue-600" />} color="bg-blue-50" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard title="Pendientes" value={stats.pendientes} icon={<Clock className="text-yellow-600" />} />
+        <StatCard title="Aceptadas" value={stats.aceptadas} icon={<CheckCircle className="text-green-600" />} />
+        <StatCard title="Rechazadas" value={stats.rechazadas} icon={<XCircle className="text-red-600" />} />
+        <StatCard title="Total Servicios" value={stats.total} icon={<Calendar className="text-blue-600" />} />
       </div>
 
-      <div className="mt-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Solicitudes Recientes</h2>
-        <SolicitudesList />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <SolicitudesList />
+        </div>
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+          <h2 className="text-xl font-bold mb-4">Estado del Taller</h2>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">Monitoreo de carga de trabajo en tiempo real.</p>
+            {/* Aquí podrían ir gráficos simples o más métricas */}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function StatCard({ title, value, icon, color }: { title: string, value: string, icon: React.ReactNode, color: string }) {
+function StatCard({ title, value, icon }: { title: string, value: number, icon: React.ReactNode }) {
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
-      <div className={`p-4 rounded-xl ${color}`}>
-        {icon}
+    <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+      <div className="flex justify-between items-start mb-4">
+        <div className="p-2 bg-gray-50 rounded-lg">
+          {icon}
+        </div>
       </div>
       <div>
-        <p className="text-sm font-medium text-gray-500">{title}</p>
-        <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+        <p className="text-sm text-gray-500 font-medium">{title}</p>
+        <p className="text-2xl font-bold text-gray-900">{value}</p>
       </div>
     </div>
   );

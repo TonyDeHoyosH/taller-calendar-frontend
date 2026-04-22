@@ -14,11 +14,8 @@ export default function CalendarView() {
   
   const { data: rawData, isLoading } = useQuery({
     queryKey: ['citas-todas'],
-    queryFn: citasApi.getCitas,
+    queryFn: citasApi.getCitasTodas,
   });
-
-  // Log para depuración rápida en consola F12
-  if (rawData) console.log('Datos recibidos del backend:', rawData);
 
   const citas = Array.isArray(rawData) 
     ? rawData 
@@ -48,39 +45,26 @@ export default function CalendarView() {
     }
   }));
 
-  console.log('Eventos mapeados:', events);
-
   if (isLoading) {
-    return <div className="animate-pulse bg-gray-100 rounded-3xl h-[600px] w-full"></div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   const initialDate = events.length > 0 ? events[0].start : undefined;
 
   return (
-    <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 relative">
-      {/* Indicador de depuración */}
-      <div className="absolute top-2 right-2 px-2 py-1 bg-gray-800 text-white text-[10px] rounded z-10 opacity-50">
-        Citas: {citas.length} | Eventos: {events.length}
-      </div>
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
       <style>{`
-        .fc-theme-standard td, .fc-theme-standard th { border-color: #f3f4f6; }
-        .fc-theme-standard .fc-scrollgrid { border-color: #f3f4f6; border-radius: 12px; overflow: hidden; }
-        .fc-day-today { background-color: #f8fafc !important; }
-        .fc-event { 
-          border-radius: 8px !important; 
-          padding: 4px 8px !important; 
-          border: none !important; 
-          font-weight: 700 !important; 
-          cursor: pointer !important; 
-          margin: 2px 0 !important; 
-          font-size: 0.7rem !important;
-          color: white !important;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700 !important; color: #111827; text-transform: capitalize; }
-        .fc-button-primary { background-color: #111827 !important; border-color: #111827 !important; text-transform: capitalize; border-radius: 10px !important; font-weight: 500; }
-        .fc-event:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.2s; }
+        .fc-event { cursor: pointer !important; }
+        .fc-event:hover { opacity: 0.9; }
       `}</style>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Agenda del Taller</h2>
+        <p className="text-gray-500">Visualiza y gestiona todas las citas programadas.</p>
+      </div>
 
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
@@ -94,13 +78,26 @@ export default function CalendarView() {
           center: 'title',
           right: 'dayGridMonth,dayGridWeek'
         }}
-        eventClick={(info) => setSelectedCitaId(info.event.id)}
+        eventClick={(info) => {
+          setSelectedCitaId(info.event.id);
+        }}
+        editable={true}
+        eventDrop={async (info) => {
+          const newDate = info.event.start?.toISOString();
+          if (newDate) {
+            try {
+              await citasApi.updateCita(info.event.id, { fecha_inicio: newDate });
+              // Invalidad caché para refrescar
+            } catch (error) {
+              info.revert();
+              alert('Error al mover la cita');
+            }
+          }
+        }}
         eventContent={(eventInfo) => (
-          <div className="flex flex-col gap-0.5 leading-tight">
-             <span className="opacity-80 text-[9px] uppercase tracking-tighter font-black">
-               {eventInfo.event.extendedProps.estado}
-             </span>
-             <span className="truncate">{eventInfo.event.title}</span>
+          <div className="p-1 overflow-hidden">
+            <div className="text-xs font-bold truncate">{eventInfo.event.title}</div>
+            <div className="text-[10px] opacity-80 truncate">{eventInfo.event.extendedProps.cliente}</div>
           </div>
         )}
       />

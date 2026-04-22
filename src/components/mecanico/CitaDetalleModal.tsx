@@ -1,167 +1,170 @@
 'use client';
 
-import { useState } from 'react';
-import { X, Calendar as CalendarIcon, User, Car, ClipboardList, CheckCircle2, Clock, Ban, AlertCircle } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { citasApi } from '@/lib/api/citas';
-import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { X, Calendar, Clock, User, Car, FileText, AlertCircle, CheckCircle2, PlayCircle, Ban } from 'lucide-react';
+import { useState } from 'react';
 
 interface CitaDetalleModalProps {
-  citaId: string | number | null;
+  citaId: string | number;
   onClose: () => void;
 }
 
 export default function CitaDetalleModal({ citaId, onClose }: CitaDetalleModalProps) {
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [error, setError] = useState('');
   const queryClient = useQueryClient();
+  const [error, setError] = useState('');
 
-  const citas = queryClient.getQueryData<any[]>(['citas-todas']);
-  const cita = citas?.find(c => c.id.toString() === citaId?.toString());
+  // Intentar obtener de la caché general primero para mayor velocidad
+  const { data: allCitas } = useQuery<any[]>({
+    queryKey: ['citas-todas'],
+    enabled: false, // No disparar fetch, solo leer caché
+  });
 
-  if (!cita) return null;
+  const { data: citaFetched, isLoading } = useQuery({
+    queryKey: ['cita', citaId],
+    queryFn: () => citasApi.getCitaById(citaId),
+    retry: 1,
+  });
 
-  const handleUpdateStatus = async (nuevoEstado: string) => {
-    setIsUpdating(true);
-    setError('');
-    try {
-      await citasApi.updateCita(cita.id, { estado: nuevoEstado });
+  // Usar la cita del fetch individual, o buscarla en la lista general si el fetch falla
+  const cita = citaFetched || allCitas?.find(c => c.id.toString() === citaId.toString());
+
+  const updateMutation = useMutation({
+    mutationFn: ({ accion }: { accion: 'aceptar' | 'en-curso' | 'completar' | 'cancelar' }) => 
+      citasApi.updateEstadoCita(citaId, accion),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cita', citaId] });
       queryClient.invalidateQueries({ queryKey: ['citas-todas'] });
-      onClose();
+    },
+  });
+
+  if (isLoading) return null; // O un spinner pequeño
+
+  if (!cita) return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl p-8 text-center">
+        <p>No se encontró la cita.</p>
+        <button onClick={onClose} className="mt-4 text-blue-600">Cerrar</button>
+      </div>
+    </div>
+  );
+
+  const handleUpdateStatus = async (nuevoEstado: 'aceptar' | 'en-curso' | 'completar' | 'cancelar') => {
+    try {
+      setError('');
+      await updateMutation.mutateAsync({ accion: nuevoEstado });
     } catch (err: any) {
-      const msg = Array.isArray(err.response?.data?.message) 
-        ? err.response.data.message.join(', ') 
-        : err.response?.data?.message;
-      setError(msg || 'Error al actualizar el estado.');
-    } finally {
-      setIsUpdating(false);
+      console.error('Error al actualizar:', err);
+      setError('Error al actualizar el estado. Revisa el backend.');
     }
   };
 
-  const handleUpdateDate = async (nuevaFecha: string) => {
-    if (!nuevaFecha) return;
-    setIsUpdating(true);
+  const safeFormat = (date: any) => {
     try {
-      await citasApi.updateCita(cita.id, { 
-        fecha_preferida: new Date(nuevaFecha).toISOString(),
-        fecha_inicio: new Date(nuevaFecha).toISOString() // Mandamos ambos por si acaso
-      });
-      queryClient.invalidateQueries({ queryKey: ['citas-todas'] });
-      onClose();
-    } catch (err: any) {
-      const msg = Array.isArray(err.response?.data?.message) 
-        ? err.response.data.message.join(', ') 
-        : err.response?.data?.message;
-      setError(msg || 'Error al actualizar la fecha.');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const safeFormat = (dateStr: any) => {
-    try {
-      const d = new Date(dateStr);
+      const d = new Date(date);
       if (isNaN(d.getTime())) return 'Fecha no válida';
-      return format(d, 'yyyy-MM-dd');
-    } catch {
+      return format(d, "PPPP 'a las' HH:mm", { locale: es });
+    } catch (e) {
       return 'Fecha no válida';
     }
   };
 
-  const getEstadoBadge = (estado: string) => {
-    switch (estado) {
-      case 'pendiente': return <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"><Clock className="w-3 h-3" /> Pendiente</span>;
-      case 'aceptada': return <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3" /> Aceptada</span>;
-      case 'en_curso': return <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"><AlertCircle className="w-3 h-3" /> En Curso</span>;
-      case 'completada': return <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3" /> Completada</span>;
-      case 'cancelada': return <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"><Ban className="w-3 h-3" /> Cancelada</span>;
-      default: return null;
-    }
-  };
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-          <div className="flex items-center gap-3">
-            <h3 className="text-xl font-bold text-gray-900">Detalles de la Cita</h3>
-            {getEstadoBadge(cita.estado)}
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+      <div className="bg-white w-full max-w-2xl rounded-[32px] overflow-hidden shadow-2xl relative">
+        {/* Cabecera con Imagen/Color según estado */}
+        <div className={`h-32 p-8 flex justify-between items-start ${
+          cita.estado === 'completada' ? 'bg-green-600' : 
+          cita.estado === 'cancelada' ? 'bg-red-600' : 'bg-blue-600'
+        }`}>
+          <div>
+            <span className="bg-white/20 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest backdrop-blur-md">
+              Detalle de Servicio
+            </span>
+            <h2 className="text-3xl font-bold text-white mt-2">#{cita.id}</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
-            <X className="w-5 h-5 text-gray-500" />
+          <button 
+            onClick={onClose}
+            className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all"
+          >
+            <X className="w-6 h-6" />
           </button>
         </div>
 
-        <div className="p-8 space-y-8">
-          {error && <div className="p-3 bg-red-50 text-red-600 text-xs rounded-xl border border-red-100">{error}</div>}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-1">
-              <label className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest"><User className="w-3 h-3" /> Cliente</label>
-              <p className="text-gray-900 font-semibold">{cita.usuario?.nombre || 'Cliente Registrado'}</p>
+        <div className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div className="space-y-6">
+              <DetailItem icon={<Car />} label="Vehículo" value={cita.vehiculo_modelo || cita.modelo_auto} />
+              <DetailItem icon={<User />} label="Cliente" value={cita.usuario?.nombre || 'S/N'} />
+              <DetailItem icon={<Clock />} label="Estado" value={
+                <span className={`capitalize font-bold ${
+                  cita.estado === 'pendiente' ? 'text-yellow-600' : 
+                  cita.estado === 'aceptada' ? 'text-blue-600' :
+                  cita.estado === 'en_curso' ? 'text-purple-600' :
+                  cita.estado === 'completada' ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {cita.estado}
+                </span>
+              } />
             </div>
-            <div className="space-y-1">
-              <label className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest"><Car className="w-3 h-3" /> Vehículo</label>
-              <p className="text-gray-900 font-semibold">{cita.vehiculo_modelo || cita.modelo_auto || 'No especificado'}</p>
+            <div className="space-y-6">
+              <DetailItem icon={<Calendar />} label="Fecha Programada" value={safeFormat(cita.fecha_preferida || cita.fecha_inicio)} />
+              <DetailItem icon={<FileText />} label="Descripción" value={cita.descripcion || cita.descripcion_problema || 'Sin descripción'} />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest"><ClipboardList className="w-3 h-3" /> Descripción del Problema</label>
-            <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-gray-700 text-sm leading-relaxed">
-              {cita.descripcion || cita.descripcion_problema || 'Sin descripción'}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-2 text-red-600 text-sm font-medium">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              {error}
+            </div>
+          )}
+
+          {/* Acciones de Estado */}
+          <div className="border-t pt-8">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Acciones de Gestión</p>
+            <div className="flex flex-wrap gap-3">
+              {cita.estado === 'aceptada' && (
+                <StatusButton onClick={() => handleUpdateStatus('en-curso')} icon={<PlayCircle />} label="Iniciar Servicio" color="bg-purple-600 hover:bg-purple-700" />
+              )}
+              {(cita.estado === 'en-curso' || cita.estado === 'aceptada') && (
+                <StatusButton onClick={() => handleUpdateStatus('completar')} icon={<CheckCircle2 />} label="Terminar Servicio" color="bg-green-600 hover:bg-green-700" />
+              )}
+              {(cita.estado !== 'completada' && cita.estado !== 'cancelada' && cita.estado !== 'completar') && (
+                <StatusButton onClick={() => handleUpdateStatus('cancelar')} icon={<Ban />} label="Cancelar Cita" color="bg-red-600 hover:bg-red-700" />
+              )}
             </div>
           </div>
-
-          <div className="space-y-4 pt-4 border-t border-gray-100">
-             <label className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest"><CalendarIcon className="w-3 h-3" /> Gestionar Fecha y Estado</label>
-             
-             <div className="flex flex-wrap gap-3 items-center">
-                <input 
-                  type="date" 
-                  defaultValue={safeFormat(cita.fecha_preferida || cita.fecha_inicio)}
-                  onChange={(e) => handleUpdateDate(e.target.value)}
-                  className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
-                />
-                
-                <div className="flex gap-2">
-                  {cita.estado !== 'en_curso' && cita.estado !== 'completada' && (
-                    <button 
-                      onClick={() => handleUpdateStatus('en_curso')}
-                      disabled={isUpdating}
-                      className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-all shadow-sm"
-                    >
-                      En Curso
-                    </button>
-                  )}
-                  {cita.estado !== 'completada' && (
-                    <button 
-                      onClick={() => handleUpdateStatus('completada')}
-                      disabled={isUpdating}
-                      className="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-xl transition-all shadow-sm"
-                    >
-                      Terminar
-                    </button>
-                  )}
-                  {cita.estado !== 'cancelada' && (
-                    <button 
-                      onClick={() => handleUpdateStatus('cancelada')}
-                      disabled={isUpdating}
-                      className="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium rounded-xl transition-all"
-                    >
-                      Cancelar
-                    </button>
-                  )}
-                </div>
-             </div>
-          </div>
-        </div>
-
-        <div className="p-6 bg-gray-50 border-t border-gray-100 text-center">
-           <p className="text-[10px] text-gray-400 font-medium uppercase tracking-tighter">Acceso de Mecánico Autorizado</p>
         </div>
       </div>
     </div>
+  );
+}
+
+function DetailItem({ icon, label, value }: { icon: React.ReactNode, label: string, value: any }) {
+  return (
+    <div className="flex gap-4">
+      <div className="p-3 bg-gray-50 rounded-2xl text-gray-400 shrink-0">
+        {icon}
+      </div>
+      <div>
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{label}</p>
+        <div className="text-gray-900 font-medium leading-tight">{value}</div>
+      </div>
+    </div>
+  );
+}
+
+function StatusButton({ onClick, icon, label, color }: { onClick: () => void, icon: React.ReactNode, label: string, color: string }) {
+  return (
+    <button 
+      onClick={onClick}
+      className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-bold text-sm transition-all shadow-lg active:scale-95 ${color}`}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }

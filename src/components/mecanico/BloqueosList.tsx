@@ -27,47 +27,47 @@ export default function BloqueosList() {
     }
   };
 
-  if (isLoading) return <div className="animate-pulse bg-gray-50 h-32 rounded-2xl"></div>;
-
-  if (bloqueos.length === 0) {
-    return (
-      <div className="bg-gray-50 p-8 rounded-3xl border border-dashed border-gray-200 text-center">
-        <Calendar className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-        <p className="text-gray-500 font-medium">No hay fechas bloqueadas actualmente.</p>
-      </div>
-    );
-  }
+  if (isLoading) return <div className="animate-pulse bg-gray-50 h-32 rounded-xl"></div>;
 
   return (
-    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-gray-50 bg-gray-50/30">
-        <h3 className="font-bold text-gray-900">Fechas Inhabilitadas</h3>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="p-6 border-b border-gray-50 bg-gray-50/50">
+        <h3 className="text-xl font-bold text-gray-900">Fechas Bloqueadas</h3>
+        <p className="text-sm text-gray-500">Periodos donde el taller no recibirá citas.</p>
       </div>
-      <div className="divide-y divide-gray-50">
-        {bloqueos.map((bloqueo: any) => (
-          <div key={bloqueo.id} className="p-6 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-red-50 rounded-xl">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <p className="font-bold text-gray-900">{bloqueo.motivo}</p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Desde {format(new Date(bloqueo.fecha_inicio), 'PP', { locale: es })} hasta {format(new Date(bloqueo.fecha_fin), 'PP', { locale: es })}
-                </p>
-              </div>
-            </div>
-            <button 
-              onClick={() => handleDelete(bloqueo.id)}
-              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-              title="Eliminar bloqueo"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
+
+      <div className="divide-y divide-gray-50 max-h-[400px] overflow-y-auto">
+        {bloqueos.length === 0 ? (
+          <div className="p-10 text-center text-gray-500">
+            <Calendar className="w-12 h-12 mx-auto mb-3 opacity-20" />
+            <p>No hay fechas bloqueadas actualmente.</p>
           </div>
-        ))}
+        ) : (
+          bloqueos.map((bloqueo: any) => (
+            <div key={bloqueo.id} className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="font-bold text-gray-900">{bloqueo.motivo}</span>
+                <span className="text-sm text-gray-600">
+                  {format(new Date(bloqueo.fecha_inicio), 'dd/MM/yyyy')} - {format(new Date(bloqueo.fecha_fin), 'dd/MM/yyyy')}
+                </span>
+              </div>
+              <button 
+                onClick={() => handleDelete(bloqueo.id)}
+                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="Eliminar bloqueo"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))
+        )}
       </div>
-      {error && <p className="p-4 text-xs text-red-500 text-center border-t border-gray-50">{error}</p>}
+      {error && (
+        <div className="p-4 bg-red-50 text-red-700 text-sm flex items-center gap-2">
+          <AlertCircle className="w-4 h-4" />
+          {error}
+        </div>
+      )}
     </div>
   );
 }

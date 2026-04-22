@@ -4,14 +4,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { citasApi } from '@/lib/api/citas';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Check, X, Calendar, Wrench } from 'lucide-react';
+import { Check, X, Calendar, User, Car } from 'lucide-react';
 
 export default function SolicitudesList() {
   const queryClient = useQueryClient();
 
   const { data: rawData, isLoading } = useQuery({
     queryKey: ['citas-todas'],
-    queryFn: citasApi.getCitas,
+    queryFn: citasApi.getCitasTodas,
   });
 
   const citas = Array.isArray(rawData) 
@@ -19,7 +19,7 @@ export default function SolicitudesList() {
     : (rawData as any)?.citas || (rawData as any)?.data || [];
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, action }: { id: number; action: 'aceptar' | 'rechazar' }) => 
+    mutationFn: ({ id, action }: { id: number; action: 'aceptar' | 'cancelar' }) => 
       citasApi.updateEstadoCita(id, action),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['citas-todas'] });
@@ -32,69 +32,81 @@ export default function SolicitudesList() {
     return <div className="text-center py-10 text-gray-500">Cargando solicitudes...</div>;
   }
 
-  if (solicitudesPendientes.length === 0) {
-    return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
-        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Check className="w-8 h-8 text-green-500" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No hay solicitudes pendientes</h3>
-        <p className="text-gray-500">Has revisado todas las solicitudes de citas entrantes.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
-      {solicitudesPendientes.map((cita) => (
-        <div key={cita.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 hover:shadow-md transition-all">
-          <div className="space-y-3 flex-1">
-            <div className="flex items-center gap-3">
-              <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold uppercase tracking-wider">
-                Nueva
-              </span>
-              <h3 className="font-bold text-gray-900 text-lg">{cita.vehiculo_modelo || cita.modelo_auto || 'Vehículo'}</h3>
-              <span className="text-gray-400 text-sm">#{cita.id}</span>
-            </div>
-            
-            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-blue-500" />
-                <span className="font-medium capitalize">
-                  {(() => {
-                    const d = new Date(cita.fecha_preferida || cita.fecha_inicio);
-                    return isNaN(d.getTime()) 
-                      ? 'Fecha pendiente' 
-                      : format(d, "EEEE d 'de' MMMM", { locale: es });
-                  })()}
-                </span>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+        <h2 className="text-xl font-bold text-gray-900">Solicitudes Pendientes</h2>
+        <span className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">
+          {solicitudesPendientes.length} Nuevas
+        </span>
+      </div>
+
+      <div className="divide-y divide-gray-50">
+        {solicitudesPendientes.length === 0 ? (
+          <div className="p-10 text-center text-gray-500">
+            <Calendar className="w-12 h-12 mx-auto mb-3 opacity-20" />
+            <p>No hay solicitudes pendientes de revisión.</p>
+          </div>
+        ) : (
+          solicitudesPendientes.map((cita) => (
+            <div key={cita.id} className="p-6 hover:bg-gray-50 transition-colors">
+              <div className="flex justify-between items-start gap-4">
+                <div className="space-y-3 flex-1">
+                  <div className="flex items-center gap-2">
+                    <Car className="w-4 h-4 text-gray-400" />
+                    <h3 className="font-bold text-lg text-gray-900">
+                      {cita.vehiculo_modelo || cita.modelo_auto || 'Vehículo'}
+                    </h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <User className="w-4 h-4 text-gray-400" />
+                      <span>{cita.usuario?.nombre || 'Cliente no especificado'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Calendar className="w-4 h-4 text-gray-400" />
+                      <span>
+                        {(() => {
+                          const d = new Date(cita.fecha_preferida || cita.fecha_inicio);
+                          return isNaN(d.getTime()) 
+                            ? 'Fecha no definida' 
+                            : format(d, "PPP", { locale: es });
+                        })()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <p className="text-sm text-gray-600 italic">
+                      "{cita.descripcion || cita.descripcion_problema || 'Sin descripción del problema.'}"
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => updateMutation.mutate({ id: cita.id, action: 'cancelar' })}
+                    disabled={updateMutation.isPending}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg border border-red-100 transition-colors"
+                    title="Rechazar"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => updateMutation.mutate({ id: cita.id, action: 'aceptar' })}
+                    disabled={updateMutation.isPending}
+                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg border border-green-100 transition-colors"
+                    title="Aceptar"
+                  >
+                    <Check className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             </div>
-            
-            <div className="flex items-start gap-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-xl border border-gray-100">
-              <Wrench className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-              <p>{cita.descripcion || cita.descripcion_problema}</p>
-            </div>
-          </div>
-          
-          <div className="flex md:flex-col gap-3 min-w-[140px]">
-            <button
-              onClick={() => updateMutation.mutate({ id: cita.id, action: 'aceptar' })}
-              disabled={updateMutation.isPending}
-              className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-50"
-            >
-              <Check className="w-4 h-4" /> Aceptar
-            </button>
-            <button
-              onClick={() => updateMutation.mutate({ id: cita.id, action: 'rechazar' })}
-              disabled={updateMutation.isPending}
-              className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white border border-red-200 text-red-600 hover:bg-red-50 px-4 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-50"
-            >
-              <X className="w-4 h-4" /> Rechazar
-            </button>
-          </div>
-        </div>
-      ))}
+          ))
+        )}
+      </div>
     </div>
   );
 }

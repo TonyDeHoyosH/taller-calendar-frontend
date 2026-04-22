@@ -38,9 +38,24 @@ export const citasApi = {
 
   // Flujo de estados (Kanban / Modal)
   updateEstadoCita: async (id: string | number, accion: 'aceptar' | 'en-curso' | 'completar' | 'cancelar'): Promise<Cita> => {
-    // Enviamos un objeto vacío {} para asegurar que Axios envíe los headers correctos
-    const { data } = await api.patch(`/citas/${id}/${accion}`, {});
-    return data;
+    // Mapeo interno para asegurar que el backend reciba el valor de 'estado' esperado si lo pide en el body
+    const estadoMapping: Record<string, string> = {
+      'aceptar': 'aceptada',
+      'en-curso': 'en_curso',
+      'completar': 'completada',
+      'cancelar': 'cancelada'
+    };
+
+    try {
+      // Enviamos el estado en el body por si el backend tiene ValidationPipe estricto
+      const { data } = await api.patch(`/citas/${id}/${accion}`, {
+        estado: estadoMapping[accion]
+      });
+      return data;
+    } catch (error: any) {
+      console.error('Error detallado del backend:', error.response?.data);
+      throw error;
+    }
   },
 };
 

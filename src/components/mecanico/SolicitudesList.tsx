@@ -18,6 +18,8 @@ export default function SolicitudesList() {
     ? rawData 
     : (rawData as any)?.citas || (rawData as any)?.data || [];
 
+  console.log('Estados de las citas recibidas:', citas.map(c => ({ id: c.id, estado: c.estado })));
+
   const updateMutation = useMutation({
     mutationFn: ({ id, action }: { id: number; action: 'aceptar' | 'cancelar' }) => 
       citasApi.updateEstadoCita(id, action),

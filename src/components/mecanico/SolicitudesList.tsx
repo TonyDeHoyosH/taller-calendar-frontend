@@ -88,17 +88,23 @@ export default function SolicitudesList() {
 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => updateMutation.mutate({ id: cita.id, action: 'cancelar' })}
+                    onClick={() => {
+                      if (updateMutation.isPending) return;
+                      updateMutation.mutate({ id: cita.id, action: 'cancelar' });
+                    }}
                     disabled={updateMutation.isPending}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg border border-red-100 transition-colors"
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg border border-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Rechazar"
                   >
                     <X className="w-5 h-5" />
                   </button>
                   <button
-                    onClick={() => updateMutation.mutate({ id: cita.id, action: 'aceptar' })}
+                    onClick={() => {
+                      if (updateMutation.isPending) return;
+                      updateMutation.mutate({ id: cita.id, action: 'aceptar' });
+                    }}
                     disabled={updateMutation.isPending}
-                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg border border-green-100 transition-colors"
+                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg border border-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Aceptar"
                   >
                     <Check className="w-5 h-5" />

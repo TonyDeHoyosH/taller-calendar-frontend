@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -10,11 +10,20 @@ import esLocale from '@fullcalendar/core/locales/es';
 import CitaDetalleModal from './CitaDetalleModal';
 
 export default function CalendarView() {
+  const queryClient = useQueryClient();
   const [selectedCitaId, setSelectedCitaId] = useState<string | null>(null);
   
   const { data: rawData, isLoading } = useQuery({
     queryKey: ['citas-todas'],
     queryFn: citasApi.getCitasTodas,
+  });
+
+  const updateDateMutation = useMutation({
+    mutationFn: ({ id, date }: { id: string, date: string }) => 
+      citasApi.updateCita(id, { fecha_inicio: date }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['citas-todas'] });
+    },
   });
 
   const citas = Array.isArray(rawData) 
@@ -83,14 +92,20 @@ export default function CalendarView() {
         }}
         editable={true}
         eventDrop={async (info) => {
+          if (updateDateMutation.isPending) {
+            info.revert();
+            return;
+          }
+
           const newDate = info.event.start?.toISOString();
           if (newDate) {
             try {
-              await citasApi.updateCita(info.event.id, { fecha_inicio: newDate });
-              // Invalidad caché para refrescar
+              await updateDateMutation.mutateAsync({ 
+                id: info.event.id, 
+                date: newDate 
+              });
             } catch (error) {
               info.revert();
-              alert('Error al mover la cita');
             }
           }
         }}

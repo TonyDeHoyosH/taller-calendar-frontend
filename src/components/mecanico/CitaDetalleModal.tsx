@@ -52,12 +52,15 @@ export default function CitaDetalleModal({ citaId, onClose }: CitaDetalleModalPr
   );
 
   const handleUpdateStatus = async (nuevoEstado: 'aceptar' | 'en-curso' | 'completar' | 'cancelar') => {
+    if (updateMutation.isPending) return;
     try {
       setError('');
       await updateMutation.mutateAsync({ accion: nuevoEstado });
     } catch (err: any) {
       console.error('Error al actualizar:', err);
-      setError('Error al actualizar el estado. Revisa el backend.');
+      // Extraer mensaje detallado si existe
+      const backendError = err.response?.data?.message || 'Error al actualizar el estado.';
+      setError(backendError);
     }
   };
 
@@ -127,13 +130,31 @@ export default function CitaDetalleModal({ citaId, onClose }: CitaDetalleModalPr
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Acciones de Gestión</p>
             <div className="flex flex-wrap gap-3">
               {cita.estado === 'aceptada' && (
-                <StatusButton onClick={() => handleUpdateStatus('en-curso')} icon={<PlayCircle />} label="Iniciar Servicio" color="bg-purple-600 hover:bg-purple-700" />
+                <StatusButton 
+                  onClick={() => handleUpdateStatus('en-curso')} 
+                  icon={<PlayCircle />} 
+                  label="Iniciar Servicio" 
+                  color="bg-purple-600 hover:bg-purple-700" 
+                  disabled={updateMutation.isPending}
+                />
               )}
               {(cita.estado === 'en-curso' || cita.estado === 'aceptada') && (
-                <StatusButton onClick={() => handleUpdateStatus('completar')} icon={<CheckCircle2 />} label="Terminar Servicio" color="bg-green-600 hover:bg-green-700" />
+                <StatusButton 
+                  onClick={() => handleUpdateStatus('completar')} 
+                  icon={<CheckCircle2 />} 
+                  label="Terminar Servicio" 
+                  color="bg-green-600 hover:bg-green-700" 
+                  disabled={updateMutation.isPending}
+                />
               )}
               {(cita.estado !== 'completada' && cita.estado !== 'cancelada' && cita.estado !== 'completar') && (
-                <StatusButton onClick={() => handleUpdateStatus('cancelar')} icon={<Ban />} label="Cancelar Cita" color="bg-red-600 hover:bg-red-700" />
+                <StatusButton 
+                  onClick={() => handleUpdateStatus('cancelar')} 
+                  icon={<Ban />} 
+                  label="Cancelar Cita" 
+                  color="bg-red-600 hover:bg-red-700" 
+                  disabled={updateMutation.isPending}
+                />
               )}
             </div>
           </div>
@@ -157,11 +178,12 @@ function DetailItem({ icon, label, value }: { icon: React.ReactNode, label: stri
   );
 }
 
-function StatusButton({ onClick, icon, label, color }: { onClick: () => void, icon: React.ReactNode, label: string, color: string }) {
+function StatusButton({ onClick, icon, label, color, disabled }: { onClick: () => void, icon: React.ReactNode, label: string, color: string, disabled?: boolean }) {
   return (
     <button 
       onClick={onClick}
-      className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-bold text-sm transition-all shadow-lg active:scale-95 ${color}`}
+      disabled={disabled}
+      className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-bold text-sm transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${color}`}
     >
       {icon}
       {label}

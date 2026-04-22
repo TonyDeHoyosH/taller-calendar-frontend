@@ -38,8 +38,8 @@ export const citasApi = {
 
   // Flujo de estados (Kanban / Modal)
   updateEstadoCita: async (id: string | number, accion: 'aceptar' | 'en-curso' | 'completar' | 'cancelar'): Promise<Cita> => {
-    // Nota: El endpoint es /citas/:id/:accion según tu especificación
-    const { data } = await api.patch(`/citas/${id}/${accion}`);
+    // Enviamos un objeto vacío {} para asegurar que Axios envíe los headers correctos
+    const { data } = await api.patch(`/citas/${id}/${accion}`, {});
     return data;
   },
 };

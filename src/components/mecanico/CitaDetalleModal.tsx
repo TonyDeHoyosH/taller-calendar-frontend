@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { citasApi } from '@/lib/api/citas';
+import { Cita } from '@/types/cita';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { X, Calendar, Clock, User, Car, FileText, AlertCircle, CheckCircle2, PlayCircle, Ban } from 'lucide-react';
@@ -17,7 +18,7 @@ export default function CitaDetalleModal({ citaId, onClose }: CitaDetalleModalPr
   const [error, setError] = useState('');
 
   // Intentar obtener de la caché general primero para mayor velocidad
-  const { data: allCitas } = useQuery<any[]>({
+  const { data: allCitas } = useQuery<Cita[]>({
     queryKey: ['citas-todas'],
     enabled: false, // No disparar fetch, solo leer caché
   });
@@ -28,8 +29,13 @@ export default function CitaDetalleModal({ citaId, onClose }: CitaDetalleModalPr
     retry: 1,
   });
 
+  // Normalizar la cita (por si viene envuelta en { data: ... } o { cita: ... })
+  const normalizedCita = citaFetched 
+    ? ((citaFetched as any).data || (citaFetched as any).cita || citaFetched) as Cita
+    : null;
+
   // Usar la cita del fetch individual, o buscarla en la lista general si el fetch falla
-  const cita = citaFetched || allCitas?.find(c => c.id.toString() === citaId.toString());
+  const cita = normalizedCita || allCitas?.find((c: Cita) => c.id.toString() === citaId.toString());
 
   const updateMutation = useMutation({
     mutationFn: ({ accion }: { accion: 'aceptar' | 'en-curso' | 'completar' | 'cancelar' }) => 
@@ -138,7 +144,7 @@ export default function CitaDetalleModal({ citaId, onClose }: CitaDetalleModalPr
                   disabled={updateMutation.isPending}
                 />
               )}
-              {(cita.estado === 'en-curso' || cita.estado === 'aceptada') && (
+              {(cita.estado === 'en_curso' || cita.estado === 'aceptada') && (
                 <StatusButton 
                   onClick={() => handleUpdateStatus('completar')} 
                   icon={<CheckCircle2 />} 
@@ -147,7 +153,7 @@ export default function CitaDetalleModal({ citaId, onClose }: CitaDetalleModalPr
                   disabled={updateMutation.isPending}
                 />
               )}
-              {(cita.estado !== 'completada' && cita.estado !== 'cancelada' && cita.estado !== 'completar') && (
+              {(cita.estado !== 'completada' && cita.estado !== 'cancelada') && (
                 <StatusButton 
                   onClick={() => handleUpdateStatus('cancelar')} 
                   icon={<Ban />} 

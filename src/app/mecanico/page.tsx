@@ -6,18 +6,19 @@ import Link from 'next/link';
 import SolicitudesList from '@/components/mecanico/SolicitudesList';
 import { useQuery } from '@tanstack/react-query';
 import { citasApi } from '@/lib/api/citas';
+import { Cita } from '@/types/cita';
 
 export default function MecanicoDashboard() {
   const { user } = useAuth();
-  const { data: citas = [] } = useQuery({
+  const { data: citas = [] } = useQuery<Cita[]>({
     queryKey: ['citas-todas'],
-    queryFn: citasApi.getCitas,
+    queryFn: citasApi.getCitasTodas,
   });
 
   const stats = {
-    pendientes: citas.filter(c => c.estado === 'pendiente').length,
-    aceptadas: citas.filter(c => c.estado === 'aceptada').length,
-    rechazadas: citas.filter(c => c.estado === 'rechazada' || c.estado === 'cancelada').length,
+    pendientes: citas.filter((c: Cita) => c.estado === 'pendiente').length,
+    aceptadas: citas.filter((c: Cita) => c.estado === 'aceptada').length,
+    rechazadas: citas.filter((c: Cita) => c.estado === 'rechazada' || c.estado === 'cancelada').length,
     total: citas.length
   };
 

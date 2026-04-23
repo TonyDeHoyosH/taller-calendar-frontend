@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { citasApi } from '@/lib/api/citas';
+import { Cita } from '@/types/cita';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Check, X, Calendar, User, Car } from 'lucide-react';
@@ -18,17 +19,18 @@ export default function SolicitudesList() {
     ? rawData 
     : (rawData as any)?.citas || (rawData as any)?.data || [];
 
-  console.log('Estados de las citas recibidas:', citas.map(c => ({ id: c.id, estado: c.estado })));
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, action }: { id: number; action: 'aceptar' | 'cancelar' }) => 
+    mutationFn: ({ id, action }: { id: string | number; action: 'aceptar' | 'cancelar' }) => 
       citasApi.updateEstadoCita(id, action),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['citas-todas'] });
     },
   });
 
-  const solicitudesPendientes = citas.filter(c => c.estado === 'pendiente');
+  const solicitudesPendientes = (citas as Cita[]).filter((c: Cita) => 
+    c.estado?.toLowerCase() === 'pendiente'
+  );
 
   if (isLoading) {
     return <div className="text-center py-10 text-gray-500">Cargando solicitudes...</div>;
@@ -50,7 +52,7 @@ export default function SolicitudesList() {
             <p>No hay solicitudes pendientes de revisión.</p>
           </div>
         ) : (
-          solicitudesPendientes.map((cita) => (
+          solicitudesPendientes.map((cita: Cita) => (
             <div key={cita.id} className="p-6 hover:bg-gray-50 transition-colors">
               <div className="flex justify-between items-start gap-4">
                 <div className="space-y-3 flex-1">
@@ -70,10 +72,15 @@ export default function SolicitudesList() {
                       <Calendar className="w-4 h-4 text-gray-400" />
                       <span>
                         {(() => {
-                          const d = new Date(cita.fecha_preferida || cita.fecha_inicio);
-                          return isNaN(d.getTime()) 
-                            ? 'Fecha no definida' 
-                            : format(d, "PPP", { locale: es });
+                          const dateStr = cita.fecha_preferida || cita.fecha_inicio;
+                          if (!dateStr) return 'Fecha no definida';
+                          try {
+                            const d = new Date(dateStr);
+                            if (isNaN(d.getTime())) return 'Fecha no válida';
+                            return format(d, "PPP", { locale: es });
+                          } catch (e) {
+                            return 'Error en fecha';
+                          }
                         })()}
                       </span>
                     </div>

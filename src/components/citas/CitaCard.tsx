@@ -16,14 +16,17 @@ const estadoColors: Record<string, string> = {
 
 export default function CitaCard({ cita }: CitaCardProps) {
   // Ajuste para el timezone en las fechas (asumiendo formato ISO)
-  const fecha = new Date(cita.fecha_inicio);
+  const fechaString = cita.fecha_preferida || cita.fecha_inicio || new Date().toISOString();
+  const fecha = new Date(fechaString);
   const formattedDate = format(fecha, "EEEE d 'de' MMMM, yyyy", { locale: es });
   
   return (
     <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow group">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="font-semibold text-gray-900 text-lg group-hover:text-blue-600 transition-colors">{cita.modelo_auto}</h3>
+          <h3 className="font-semibold text-gray-900 text-lg group-hover:text-blue-600 transition-colors">
+            {cita.vehiculo_modelo || cita.modelo_auto || 'Vehículo'}
+          </h3>
           <p className="text-gray-400 text-xs mt-0.5">ID: #{cita.id}</p>
         </div>
         <span className={`px-3 py-1 rounded-full text-xs font-semibold border capitalize ${estadoColors[cita.estado] || estadoColors.pendiente}`}>
@@ -38,7 +41,9 @@ export default function CitaCard({ cita }: CitaCardProps) {
         </div>
         <div className="flex items-start gap-3 text-sm text-gray-600 p-2">
           <Wrench className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-          <span className="line-clamp-2 leading-relaxed">{cita.descripcion_problema}</span>
+          <span className="line-clamp-2 leading-relaxed">
+            {cita.descripcion || cita.descripcion_problema || 'Sin descripción'}
+          </span>
         </div>
       </div>
     </div>

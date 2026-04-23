@@ -3,6 +3,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { citasApi } from '@/lib/api/citas';
+import { Cita } from '@/types/cita';
 import CitaCard from '@/components/citas/CitaCard';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
@@ -10,7 +11,7 @@ import { Plus } from 'lucide-react';
 export default function ClienteDashboard() {
   const { user } = useAuth();
 
-  const { data: citas = [], isLoading, isError } = useQuery({
+  const { data: citas = [], isLoading, isError } = useQuery<Cita[]>({
     queryKey: ['citas'],
     queryFn: citasApi.getCitas,
   });
@@ -65,7 +66,7 @@ export default function ClienteDashboard() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {citas.map(cita => (
+            {citas.map((cita: Cita) => (
               <CitaCard key={cita.id} cita={cita} />
             ))}
           </div>

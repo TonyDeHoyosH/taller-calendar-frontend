@@ -6,6 +6,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { citasApi } from '@/lib/api/citas';
+import { Cita } from '@/types/cita';
 import esLocale from '@fullcalendar/core/locales/es';
 import CitaDetalleModal from './CitaDetalleModal';
 
@@ -41,7 +42,7 @@ export default function CalendarView() {
     }
   };
 
-  const events = citas.map(cita => ({
+  const events = (citas as Cita[]).map((cita: Cita) => ({
     id: cita.id.toString(),
     title: `${cita.vehiculo_modelo || cita.modelo_auto || 'Vehículo'}`,
     start: cita.fecha_preferida || cita.fecha_inicio,

@@ -1,50 +1,54 @@
-# Taller Calendar Frontend
+# Mechanic Pro System
 
-Este es el frontend para el sistema de agendamiento de citas de un taller mecánico, desarrollado con Next.js 14, Tailwind CSS y TypeScript.
+Sistema integral de gestion de servicios para talleres mecanicos diseñado para optimizar el flujo de trabajo entre clientes y especialistas. Construido sobre una arquitectura moderna y escalable que garantiza robustez en cada interaccion.
 
-## Requisitos Previos
+## Filosofia de Desarrollo
 
-- Node.js 18.x o superior
-- npm o yarn
-- Backend (API) funcionando en el puerto 10000
+Este proyecto implementa un modelo de desarrollo hibrido. Se ha utilizado Inteligencia Artificial avanzada como catalizador para la generacion de codigo y optimizacion de procesos, manteniendo siempre la supervision humana como eje central. Cada decision arquitectonica, seleccion de librerias y validacion de logica ha sido ejecutada y refinada por el equipo de ingenieria, asegurando que la IA actue como un potente motor de productividad bajo un criterio tecnico riguroso.
 
-## Configuración y Arranque
+## Arquitectura Tecnica
 
-1. Clona el repositorio e instala dependencias:
+El ecosistema se basa en tecnologias lideres en la industria para ofrecer una experiencia de usuario fluida y un mantenimiento simplificado.
+
+- **Nucleo:** Next.js 14 con App Router para una navegacion optimizada y renderizado eficiente.
+- **Gestion de Datos:** TanStack Query (React Query) para la sincronizacion de estado con el servidor, manejo de cache y revalidaciones en tiempo real.
+- **Estado Global:** Zustand con persistencia para una gestion de sesion ligera y reactiva.
+- **Capa de Estilos:** Tailwind CSS implementado bajo principios de diseño atomico y responsividad total.
+- **Seguridad:** Interceptores de Axios para la inyeccion de JWT y manejo centralizado de excepciones de autorizacion.
+- **Integridad de Datos:** Validaciones estrictas en tiempo de ejecucion mediante Zod y React Hook Form.
+
+## Funcionalidades Core
+
+### Administracion de Servicios (Mecanico)
+- Gestion inteligente de solicitudes de citas (Aceptacion/Rechazo).
+- Calendario maestro interactivo para el control de la carga de trabajo.
+- Sistema de bloqueos temporales para gestion de disponibilidad y feriados.
+
+### Experiencia del Cliente
+- Portal de seguimiento de estado de reparaciones.
+- Sistema de solicitudes intuitivo con detalle de fallas.
+- Historial de servicios vinculados a la cuenta.
+
+## Requisitos y Despliegue
+
+### Requisitos Locales
+- Node.js 18.x o superior.
+- Instancia del backend activa.
+
+### Instalacion Rapida
+1. Instalar dependencias:
    ```bash
    npm install
    ```
-2. Configura las variables de entorno copiando `.env.example` a `.env.local`:
+2. Configurar entorno:
    ```bash
    cp .env.example .env.local
    ```
-   Asegúrate de que `NEXT_PUBLIC_API_URL` apunte correctamente a tu backend (por defecto `http://localhost:10000`).
-
-3. Inicia el entorno de desarrollo:
+3. Ejecutar en modo desarrollo:
    ```bash
    npm run dev
    ```
 
-4. Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
+## Especificaciones de Proyecto
 
-## Arquitectura Tecnológica
-
-- **Framework Core:** Next.js 14 con App Router para rutas protegidas y renderizado híbrido.
-- **Estado de Servidor:** TanStack React Query para caché de solicitudes, revalidaciones (`invalidateQueries`) y manejo de estados asíncronos.
-- **Estado Global:** Zustand con persistencia en `localStorage` (Middlewares) para la sesión del usuario.
-- **Autenticación:** Sistema basado en JWT inyectado globalmente mediante interceptores de Axios. Manejo de errores de autorización (401) global.
-- **Formularios:** Validaciones estrictas con React Hook Form acoplado a Zod (`@hookform/resolvers/zod`).
-- **UI & Estilos:** Tailwind CSS con componentes semánticos de Lucide React, siguiendo prácticas mobile-first. Calendario interactivo con FullCalendar.
-
-## Roles del Sistema
-
-- **Cliente (`cliente`):** 
-  - Visualización del dashboard de estado de sus vehículos.
-  - Creación de solicitudes de citas (Mantenimientos, reparaciones, etc).
-  
-- **Mecánico (`mecanico`):**
-  - Recepción y gestión de solicitudes (Aceptar/Rechazar).
-  - Visualización de calendario maestro de citas aceptadas.
-  - Gestión de disponibilidad (Bloqueo de fechas por vacaciones o inhabilitación del taller).
-
-Desarrollado como proyecto académico para la asignatura de Servicios Web.
+Desarrollado como proyecto de integracion para la asignatura de Servicios Web. El enfoque se centra en la excelencia tecnica y la implementacion de patrones de diseño modernos.
